@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-immersive">
+<meta name="apple-mobile-web-app-title" content="ArtKids">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
+<title>ArtKids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:none;-webkit-user-select:none;user-select:none}
+:root{
+  --bg:#1a1a2e;--surface:#16213e;--surface2:#0f3460;
+  --accent:#e94560;--accent2:#f5a623;--accent3:#4ecdc4;
+  --text:#f0f0f0;--muted:#8888aa;
+  --green:#00b894;--yellow:#fdcb6e;--pink:#fd79a8;--purple:#a29bfe;
+}
+html,body{height:100%;width:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Nunito',sans-serif;color:var(--text);display:flex;flex-direction:column}
+#app{display:flex;flex-direction:column;height:100%;width:100%;overflow:hidden}
+
+/* INSTALL BANNER */
+#install-banner{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--accent2);color:#1a1a2e;padding:12px 16px;z-index:2000;align-items:center;gap:10px;font-weight:800;font-size:14px}
+#install-banner button{background:#1a1a2e;color:white;border:none;padding:8px 14px;border-radius:10px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px}
+#install-banner .dismiss{background:transparent;color:#1a1a2e;border:2px solid #1a1a2e;margin-left:auto}
+
+/* TOP BAR */
+#topbar{display:flex;align-items:center;padding:6px 10px;background:var(--surface);gap:8px;flex-shrink:0;border-bottom:2px solid var(--surface2);z-index:100;padding-top:max(6px,env(safe-area-inset-top))}
+.logo{font-family:'Fredoka One',cursive;font-size:20px;background:linear-gradient(135deg,var(--accent2),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0}
+#xp-bar{flex:1;height:14px;background:var(--surface2);border-radius:10px;overflow:hidden;min-width:60px}
+#xp-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent2),var(--pink));transition:width 0.5s ease;width:0%}
+#level-badge{background:var(--accent2);color:#1a1a2e;font-weight:900;font-size:12px;padding:3px 8px;border-radius:12px;flex-shrink:0;font-family:'Fredoka One',cursive}
+#token-count{display:flex;align-items:center;gap:4px;font-weight:800;font-size:13px;color:var(--accent2);flex-shrink:0}
+#settings-btn{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;border-radius:8px;flex-shrink:0}
+
+/* MAIN */
+#main{display:flex;flex:1;overflow:hidden;position:relative}
+
+/* TOOLBAR */
+#toolbar{display:flex;flex-direction:column;gap:6px;padding:8px 6px;background:var(--surface);width:54px;flex-shrink:0;overflow-y:auto;z-index:50;border-right:2px solid var(--surface2)}
+.tool-btn{width:40px;height:40px;border-radius:10px;border:2px solid transparent;background:var(--surface2);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0}
+.tool-btn.active{background:var(--accent);border-color:var(--accent2)}
+.tool-btn:active{transform:scale(0.92)}
+.tool-sep{width:30px;height:2px;background:var(--surface2);margin:2px auto;border-radius:2px;flex-shrink:0}
+.section-title{font-size:9px;color:var(--muted);font-weight:800;text-align:center;padding:4px 0 2px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0}
+
+/* CANVAS */
+#canvas-wrap{flex:1;position:relative;overflow:hidden;background:#f5f5f0}
+#drawing-canvas{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none}
+#template-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+
+/* RIGHT PANEL */
+#right-panel{width:62px;background:var(--surface);display:flex;flex-direction:column;gap:5px;padding:8px 6px;overflow-y:auto;flex-shrink:0;border-left:2px solid var(--surface2)}
+.color-swatch{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.15s;flex-shrink:0;align-self:center}
+.color-swatch.selected{border-color:white;transform:scale(1.15)}
+.color-swatch:active{transform:scale(0.92)}
+.r-sep{height:2px;background:var(--surface2);margin:2px 4px;border-radius:2px;flex-shrink:0}
+.pen-btn{width:36px;height:36px;background:var(--surface2);border:2px solid transparent;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all 0.15s;flex-shrink:0;align-self:center}
+.pen-btn.active{border-color:var(--accent2);background:var(--accent)}
+.pen-btn.locked{opacity:0.3}
+
+/* BOTTOM BAR */
+#bottombar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface);flex-shrink:0;border-top:2px solid var(--surface2);z-index:100;overflow-x:auto;padding-bottom:max(6px,env(safe-area-inset-bottom))}
+#bottombar::-webkit-scrollbar{height:0}
+.bottom-btn{background:var(--surface2);border:2px solid transparent;color:var(--text);font-weight:700;font-size:12px;padding:6px 10px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.15s;font-family:'Nunito',sans-serif}
+.bottom-btn:active{transform:scale(0.95)}
+.bottom-btn.primary{background:var(--accent);color:white}
+#mode-indicator{color:var(--accent3);font-weight:800;font-size:12px;padding:4px 10px;background:rgba(78,205,196,0.15);border-radius:8px;border:1px solid var(--accent3);flex-shrink:0}
+#music-indicator{color:var(--yellow);font-size:16px;animation:pulse 1s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* BUDDY */
+#buddy-container{position:absolute;z-index:200;pointer-events:none;transition:all 0.6s cubic-bezier(0.34,1.56,0.64,1);bottom:100px;right:16px}
+#buddy-wrap{position:relative;display:flex;flex-direction:column;align-items:center}
+#buddy-body{font-size:44px;animation:buddy-float 2.5s ease-in-out infinite;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))}
+@keyframes buddy-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+#buddy-bubble{background:white;color:#1a1a2e;font-size:12px;font-weight:800;padding:8px 12px;border-radius:16px;border-bottom-left-radius:4px;max-width:160px;text-align:center;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,0.25);margin-bottom:4px;opacity:0;transform:scale(0.8) translateY(10px);transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1)}
+#buddy-bubble.show{opacity:1;transform:scale(1) translateY(0)}
+#buddy-bubble::after{content:'';position:absolute;bottom:-8px;left:16px;border:8px solid transparent;border-top-color:white;border-bottom:none}
+@keyframes buddy-bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-20px)}70%{transform:translateY(-8px)}}
+
+/* MINI CHECK-IN */
+#mini-checkin{position:absolute;z-index:300;bottom:80px;left:50%;transform:translateX(-50%) translateY(30px);background:white;border-radius:20px;padding:10px 16px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,0.25);opacity:0;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+#mini-checkin.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all}
+#mini-checkin span{font-size:13px;font-weight:800;color:#1a1a2e;white-space:nowrap}
+.mini-emoji-btn{font-size:22px;cursor:pointer;padding:4px;border-radius:8px;border:none;background:none;transition:transform 0.15s}
+.mini-emoji-btn:active{transform:scale(1.4)}
+
+/* FLOATING REACTIONS */
+.float-reaction{position:absolute;font-size:24px;pointer-events:none;animation:float-up 1.5s ease-out forwards;z-index:400}
+@keyframes float-up{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(1.5)}}
+
+/* OVERLAYS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal{background:var(--surface);border-radius:20px;padding:20px;max-width:400px;width:100%;border:2px solid var(--surface2);max-height:90vh;overflow-y:auto}
+.modal h2{font-family:'Fredoka One',cursive;font-size:24px;color:var(--accent2);text-align:center;margin-bottom:6px}
+.modal p{color:var(--muted);text-align:center;font-size:14px;line-height:1.5;margin-bottom:12px}
+.modal-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.modal-btn{padding:12px 20px;border-radius:14px;border:none;font-weight:800;font-size:15px;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.15s}
+.modal-btn:active{transform:scale(0.95)}
+.modal-btn.yes{background:var(--green);color:white}
+.modal-btn.no{background:var(--accent);color:white}
+.modal-btn.maybe{background:var(--accent2);color:#1a1a2e}
+.emoji-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.emoji-card{background:var(--surface2);border-radius:14px;padding:10px 6px;cursor:pointer;text-align:center;border:2px solid transparent;transition:all 0.15s}
+.emoji-card.selected{border-color:var(--accent2);background:rgba(245,166,35,0.15)}
+.emoji-card .e{font-size:26px;display:block;margin-bottom:4px}
+.emoji-card .l{font-size:10px;font-weight:800;color:var(--muted)}
+.feeling-stars{display:flex;justify-content:center;gap:6px;margin:10px 0}
+.fstar{font-size:24px;cursor:pointer;transition:transform 0.15s;opacity:0.35}
+.fstar.lit{opacity:1}
+.challenge-btns{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.challenge-btn{padding:10px 16px;border-radius:12px;border:none;font-weight:800;font-size:14px;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.15s}
+.challenge-btn:active{transform:scale(0.95)}
+.unlock-badge{background:linear-gradient(135deg,var(--accent2),var(--pink));border-radius:16px;padding:14px;text-align:center;margin:10px 0}
+.unlock-badge .pen-icon{font-size:40px;display:block;margin-bottom:6px}
+.unlock-badge h3{font-family:'Fredoka One',cursive;font-size:20px;color:#1a1a2e}
+.progress-mini{height:6px;background:var(--surface2);border-radius:4px;overflow:hidden;margin:8px 0}
+.progress-mini-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--green));border-radius:4px;transition:width 0.5s}
+#library-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:280px;overflow-y:auto;margin:10px 0}
+.lib-item{background:var(--surface2);border-radius:12px;padding:8px;cursor:pointer;text-align:center;border:2px solid transparent;transition:all 0.15s}
+.lib-item:active{border-color:var(--accent2)}
+.lib-item span{font-size:11px;color:var(--muted);font-weight:700}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--surface2)}
+.setting-row span{font-size:14px;font-weight:700}
+.toggle{width:44px;height:24px;background:var(--surface2);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;border:none;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s}
+.toggle.on::after{left:23px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:4px}
+
+/* SAVE FLASH */
+#save-flash{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--green);color:white;font-weight:900;font-size:14px;padding:10px 20px;border-radius:14px;z-index:500;opacity:0;transition:all 0.3s;pointer-events:none;font-family:'Fredoka One',cursive;white-space:nowrap}
+#save-flash.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="topbar">
+  <div class="logo">✏️ ArtKids</div>
+  <div style="display:flex;flex-direction:column;flex:1;gap:3px;min-width:60px">
+    <div style="display:flex;justify-content:space-between">
+      <span style="font-size:10px;color:var(--muted);font-weight:700">LVL <span id="level-num">1</span></span>
+      <span style="font-size:10px;color:var(--muted)"><span id="xp-cur">0</span>/<span id="xp-max">100</span></span>
+    </div>
+    <div id="xp-bar"><div id="xp-fill"></div></div>
+  </div>
+  <div id="level-badge">LVL <span id="lvl-badge-num">1</span></div>
+  <div id="token-count">🪙 <span id="token-num">0</span></div>
+  <button id="settings-btn" onclick="openSettings()">⚙️</button>
+</div>
+
+<div id="main">
+  <div id="toolbar">
+    <div class="section-title">Tool</div>
+    <button class="tool-btn active" id="btn-pen" onclick="setTool('pen')">✏️</button>
+    <button class="tool-btn" id="btn-brush" onclick="setTool('brush')">🖌️</button>
+    <button class="tool-btn" id="btn-eraser" onclick="setTool('eraser')">🧽</button>
+    <button class="tool-btn" id="btn-fill" onclick="setTool('fill')">🪣</button>
+    <div class="tool-sep"></div>
+    <div class="section-title">Size</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div id="brush-preview" style="border-radius:50%;background:white;width:8px;height:8px;transition:all 0.1s;flex-shrink:0"></div>
+      <input type="range" id="brush-size" min="2" max="40" value="6" oninput="updateBrushSize(this.value)" style="width:36px;accent-color:var(--accent2)">
+    </div>
+    <div class="tool-sep"></div>
+    <div class="section-title">Fade</div>
+    <input type="range" id="opacity-slider" min="10" max="100" value="100" oninput="updateOpacity(this.value)" style="width:36px;accent-color:var(--accent2)">
+    <div class="tool-sep"></div>
+    <button class="tool-btn" onclick="undo()">↩️</button>
+    <button class="tool-btn" onclick="clearCanvas()">🗑️</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" onclick="saveDrawing()" title="Save">💾</button>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="drawing-canvas"></canvas>
+    <canvas id="template-canvas"></canvas>
+    <div id="buddy-container">
+      <div id="buddy-wrap">
+        <div id="buddy-bubble"></div>
+        <div id="buddy-body">🐱</div>
+      </div>
+    </div>
+    <div id="mini-checkin">
+      <span id="mini-question">How are you feeling?</span>
+      <button class="mini-emoji-btn" onclick="miniRespond('😄')">😄</button>
+      <button class="mini-emoji-btn" onclick="miniRespond('🤩')">🤩</button>
+      <button class="mini-emoji-btn" onclick="miniRespond('😊')">😊</button>
+      <button class="mini-emoji-btn" onclick="miniRespond('😐')">😐</button>
+    </div>
+  </div>
+
+  <div id="right-panel">
+    <div class="section-title">Color</div>
+    <div id="color-swatches"></div>
+    <div class="r-sep"></div>
+    <div class="section-title" style="font-size:8px">CUSTOM</div>
+    <input type="color" id="custom-color-input" value="#ff6b9d" oninput="setColor(this.value)" style="width:36px;height:36px;border-radius:50%;border:3px solid var(--muted);cursor:pointer;padding:0;align-self:center;display:block;margin:0 auto">
+    <div class="r-sep"></div>
+    <div class="section-title" style="font-size:8px">PEN</div>
+    <div id="pen-selector" style="display:flex;flex-direction:column;gap:4px;align-items:center"></div>
+  </div>
+</div>
+
+<div id="bottombar">
+  <div id="mode-indicator">✏️ DRAW</div>
+  <span id="music-indicator" style="display:none">🎵</span>
+  <button class="bottom-btn" onclick="toggleMode()">🔄 Mode</button>
+  <button class="bottom-btn" onclick="openLibrary()">🖼️ Library</button>
+  <button class="bottom-btn" onclick="importImage()">📸 Import</button>
+  <button class="bottom-btn primary" onclick="finishDrawing()">✅ Done!</button>
+</div>
+</div>
+
+<div id="save-flash">💾 Drawing Saved!</div>
+<input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileImport(event)">
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <span>📲 Add ArtKids to your Home Screen!</span>
+  <button onclick="installPWA()">Install</button>
+  <button class="dismiss" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+</div>
+
+<!-- FEELING MODAL -->
+<div class="overlay" id="feeling-modal" style="display:none">
+  <div class="modal">
+    <div id="feeling-buddy" style="font-size:50px;text-align:center;margin-bottom:6px">🐱</div>
+    <h2>Amazing Work!</h2>
+    <p id="feeling-buddy-msg">I loved watching you create!</p>
+    <div style="font-size:13px;font-weight:800;color:var(--accent3);text-align:center;margin-bottom:8px">How does your drawing make you feel?</div>
+    <div class="emoji-grid" id="feel-grid">
+      <div class="emoji-card" onclick="selectFeeling(this,'🤩')"><span class="e">🤩</span><span class="l">WOW!</span></div>
+      <div class="emoji-card" onclick="selectFeeling(this,'😄')"><span class="e">😄</span><span class="l">Happy</span></div>
+      <div class="emoji-card" onclick="selectFeeling(this,'😊')"><span class="e">😊</span><span class="l">Proud</span></div>
+      <div class="emoji-card" onclick="selectFeeling(this,'😎')"><span class="e">😎</span><span class="l">Cool</span></div>
+      <div class="emoji-card" onclick="selectFeeling(this,'🤔')"><span class="e">🤔</span><span class="l">Hmm</span></div>
+      <div class="emoji-card" onclick="selectFeeling(this,'😐')"><span class="e">😐</span><span class="l">Okay</span></div>
+      <div class="emoji-card" onclick="selectFeeling(this,'😕')"><span class="e">😕</span><span class="l">Meh</span></div>
+      <div class="emoji-card" onclick="selectFeeling(this,'😤')"><span class="e">😤</span><span class="l">Do over!</span></div>
+    </div>
+    <div style="font-size:13px;font-weight:800;color:var(--accent2);text-align:center;margin-top:10px;margin-bottom:4px">Rate your drawing!</div>
+    <div class="feeling-stars" id="star-row">
+      <span class="fstar" onclick="rateStar(1)">⭐</span>
+      <span class="fstar" onclick="rateStar(2)">⭐</span>
+      <span class="fstar" onclick="rateStar(3)">⭐</span>
+      <span class="fstar" onclick="rateStar(4)">⭐</span>
+      <span class="fstar" onclick="rateStar(5)">⭐</span>
+    </div>
+    <div style="font-size:13px;font-weight:800;color:var(--muted);text-align:center;margin-top:8px">Can you do even better next time?</div>
+    <div class="challenge-btns">
+      <button class="challenge-btn" style="background:var(--green);color:white" onclick="respondChallenge('yes')">👍 YES!</button>
+      <button class="challenge-btn" style="background:var(--accent2);color:#1a1a2e" onclick="respondChallenge('maybe')">🤔 Maybe</button>
+      <button class="challenge-btn" style="background:var(--accent);color:white" onclick="respondChallenge('no')">🥰 I tried!</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL UP -->
+<div class="overlay" id="levelup-modal" style="display:none">
+  <div class="modal">
+    <h2>🎉 Level Up!</h2>
+    <div class="unlock-badge">
+      <span class="pen-icon" id="unlocked-pen-icon">✏️</span>
+      <h3 id="unlocked-pen-name">New Pen Unlocked!</h3>
+      <p style="color:#1a1a2e;font-size:13px;margin-top:4px" id="unlocked-pen-desc">Keep drawing!</p>
+    </div>
+    <div style="text-align:center;margin:8px 0">
+      <span style="font-size:32px;font-family:'Fredoka One',cursive;color:var(--accent2)">LEVEL <span id="new-level-num">2</span>!</span>
+    </div>
+    <div class="progress-mini"><div class="progress-mini-fill" id="levelup-progress" style="width:0%"></div></div>
+    <div class="modal-btns">
+      <button class="modal-btn yes" onclick="document.getElementById('levelup-modal').style.display='none'">🎨 Keep Drawing!</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY -->
+<div class="overlay" id="library-modal" style="display:none">
+  <div class="modal">
+    <h2>🖼️ Image Library</h2>
+    <p>Pick a template to color or trace!</p>
+    <div id="library-grid"></div>
+    <div class="modal-btns">
+      <button class="modal-btn maybe" onclick="document.getElementById('library-modal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="settings-modal" style="display:none">
+  <div class="modal">
+    <h2>⚙️ Settings</h2>
+    <div class="setting-row"><span>🎵 Drawing Music</span><button class="toggle on" id="music-toggle" onclick="toggleSetting('music',this)"></button></div>
+    <div class="setting-row"><span>🐱 Art Buddy</span><button class="toggle on" id="buddy-toggle" onclick="toggleSetting('buddy',this)"></button></div>
+    <div class="setting-row"><span>💬 Check-ins</span><button class="toggle on" id="checkin-toggle" onclick="toggleSetting('checkin',this)"></button></div>
+    <div class="setting-row">
+      <span>🐾 Buddy Character</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="setBuddy('🐱')" style="font-size:18px;background:none;border:none;cursor:pointer;padding:2px">🐱</button>
+        <button onclick="setBuddy('🐶')" style="font-size:18px;background:none;border:none;cursor:pointer;padding:2px">🐶</button>
+        <button onclick="setBuddy('🐻')" style="font-size:18px;background:none;border:none;cursor:pointer;padding:2px">🐻</button>
+        <button onclick="setBuddy('🦊')" style="font-size:18px;background:none;border:none;cursor:pointer;padding:2px">🦊</button>
+        <button onclick="setBuddy('🐸')" style="font-size:18px;background:none;border:none;cursor:pointer;padding:2px">🐸</button>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:12px;background:var(--surface2);border-radius:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px"><span>🪙 Tokens</span><span style="color:var(--accent2);font-weight:800" id="stat-tokens">0</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px"><span>🎨 Drawings</span><span style="color:var(--accent3);font-weight:800" id="stat-drawings">0</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>⭐ Level</span><span style="color:var(--yellow);font-weight:800" id="stat-level">1</span></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn maybe" onclick="document.getElementById('settings-modal').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE + PERSISTENCE
+// ============================================================
+const DEFAULT_STATE = {
+  tokens:0,xp:0,level:1,drawingsCompleted:0,
+  settings:{music:true,buddy:true,checkin:true},
+  buddyChar:'🐱'
+};
+function loadState(){
+  try{ return Object.assign({},DEFAULT_STATE,JSON.parse(localStorage.getItem('artkids_state')||'{}')); }
+  catch(e){ return Object.assign({},DEFAULT_STATE); }
+}
+function saveState(){
+  try{ localStorage.setItem('artkids_state',JSON.stringify({
+    tokens:state.tokens,xp:state.xp,level:state.level,
+    drawingsCompleted:state.drawingsCompleted,
+    settings:state.settings,buddyChar:state.buddyChar
+  })); }catch(e){}
+}
+
+const saved = loadState();
+const state = {
+  tool:'pen', color:'#222222', brushSize:6, opacity:1.0, penType:0,
+  mode:'draw', isDrawing:false, history:[], historyIndex:-1,
+  tokens:saved.tokens, xp:saved.xp, level:saved.level,
+  drawingsCompleted:saved.drawingsCompleted,
+  settings:saved.settings, musicPlaying:false,
+  rainbowHue:0, strokeCount:0, lastCheckinStroke:0, lastBuddyStroke:0,
+  drawingStartTime:null, currentStar:0, buddyChar:saved.buddyChar,
+};
+
+const COLORS = [
+  '#222222','#ffffff','#ff0000','#ff6600','#ffcc00','#00aa00',
+  '#0066ff','#9933ff','#ff66cc','#00cccc','#8B4513','#aaaaaa',
+  '#ff9999','#99ff99','#9999ff','#ffdd99','#ff99ff','#00ffcc',
+];
+
+const PENS = [
+  {icon:'✏️',name:'Pencil',desc:'Classic pencil',level:1,effect:'normal'},
+  {icon:'🖊️',name:'Ballpoint',desc:'Smooth pen',level:2,effect:'normal'},
+  {icon:'🖌️',name:'Paintbrush',desc:'Soft brush',level:3,effect:'soft'},
+  {icon:'🖋️',name:'Fountain',desc:'Elegant ink',level:4,effect:'normal'},
+  {icon:'✒️',name:'Calligraphy',desc:'Angled tip',level:5,effect:'normal'},
+  {icon:'🎨',name:'Marker',desc:'Bold marker',level:6,effect:'flat'},
+  {icon:'🌟',name:'Star Pen',desc:'Sparkles!',level:7,effect:'sparkle'},
+  {icon:'🌈',name:'Rainbow',desc:'Color shifts!',level:8,effect:'rainbow'},
+  {icon:'💎',name:'Crystal',desc:'Glitter!',level:9,effect:'glitter'},
+  {icon:'🔥',name:'Fire Pen',desc:'Hot strokes!',level:10,effect:'fire'},
+  {icon:'❄️',name:'Frost Pen',desc:'Icy cool!',level:11,effect:'soft'},
+  {icon:'🌙',name:'Moon Pen',desc:'Glow draw',level:12,effect:'soft'},
+  {icon:'⚡',name:'Lightning',desc:'Electric!',level:13,effect:'sparkle'},
+  {icon:'🦋',name:'Butterfly',desc:'So pretty!',level:14,effect:'glitter'},
+  {icon:'🚀',name:'Rocket',desc:'Blast off!',level:15,effect:'sparkle'},
+  {icon:'👑',name:'Royal Pen',desc:'Like royalty',level:16,effect:'rainbow'},
+  {icon:'🌺',name:'Flower Pen',desc:'Blooms!',level:17,effect:'glitter'},
+  {icon:'🦄',name:'Unicorn',desc:'Magical!',level:18,effect:'rainbow'},
+  {icon:'🌠',name:'Shooting Star',desc:'Epic!',level:19,effect:'sparkle'},
+  {icon:'💫',name:'Legend Pen',desc:'Ultimate!',level:20,effect:'sparkle'},
+];
+
+const BUDDY_MSGS = {
+  start:["Let's make something amazing! 🎨","You're the best artist! Let's go! 🌟","I can't wait to see what you create! ✨","Today is a great art day! 🎉"],
+  drawing:["Looking good! Keep going! 💪","Wow, that's beautiful! 🌈","You're doing SO well! ⭐","I love the colors you chose! 🎨","Don't stop — you're amazing! 🚀","Every stroke is perfect! ✨","I see a masterpiece forming! 👀","You have such great ideas! 💡","Your art makes me happy! 😄","Keep drawing — you're incredible! 🌟"],
+  longdraw:["You've been drawing so long — awesome focus! 🧠","Look how much you've made! Amazing! 🤩","You're SO dedicated! I'm proud of you! 💖","This is going to be one of your best! ✨"],
+  color:["I love that color! Great choice! 🎨","Colors make everything more fun! 🌈","You're a color genius! 💎","Beautiful! That shade is perfect! 🌸"],
+  eraser:["That's okay! Every great artist makes changes! ✏️","Adjusting things is part of art! 💪","Even changes make the drawing better! 🌟"],
+  checkin_prompt:["Quick — how are you feeling? 😊","Checking in! Are you having fun? 🎈","Hey! How's your heart feeling right now? 💖"],
+  positive_response:["Yay! I love that you're happy! 🎉","That energy shows in your art! ✨","Keep that smile! 😄"],
+  neutral_response:["That's totally okay! Every feeling is valid 💖","Art can help any mood — keep going! 🎨","You're doing great no matter how you feel! 🌟"],
+  finish:["INCREDIBLE! You finished! 🎉🎊","Look what you made — I'm SO proud! 🌟","That is a MASTERPIECE! 🖼️","You are an amazing artist! Never stop! 💫"],
+};
+function getRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// ============================================================
+// CANVAS
+// ============================================================
+const canvas = document.getElementById('drawing-canvas');
+const ctx = canvas.getContext('2d');
+const templateCanvas = document.getElementById('template-canvas');
+const templateCtx = templateCanvas.getContext('2d');
+
+function resizeCanvas(){
+  const wrap = document.getElementById('canvas-wrap');
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  const save = ctx.getImageData(0,0,canvas.width,canvas.height);
+  canvas.width=w; canvas.height=h;
+  templateCanvas.width=w; templateCanvas.height=h;
+  ctx.putImageData(save,0,0);
+  fillBg();
+}
+function fillBg(){
+  ctx.save(); ctx.globalCompositeOperation='destination-over';
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.restore();
+}
+window.addEventListener('resize',resizeCanvas);
+setTimeout(resizeCanvas,100);
+
+// ============================================================
+// DRAW
+// ============================================================
+let lastX=0,lastY=0;
+function getPos(e){
+  const rect=canvas.getBoundingClientRect();
+  const sx=canvas.width/rect.width, sy=canvas.height/rect.height;
+  if(e.touches&&e.touches.length>0){
+    const t=e.touches[0];
+    return{x:(t.clientX-rect.left)*sx,y:(t.clientY-rect.top)*sy,pressure:t.force||0.5};
+  }
+  return{x:(e.clientX-rect.left)*sx,y:(e.clientY-rect.top)*sy,pressure:0.5};
+}
+function startDraw(e){
+  e.preventDefault();
+  if(state.mode==='color'){floodFill(e);return;}
+  state.isDrawing=true;
+  const pos=getPos(e); lastX=pos.x; lastY=pos.y;
+  saveHistory(); startMusic();
+  if(!state.drawingStartTime) state.drawingStartTime=Date.now();
+}
+function draw(e){
+  e.preventDefault();
+  if(!state.isDrawing||state.mode==='color') return;
+  const pos=getPos(e);
+  const pen=PENS[state.penType];
+  const pressure=pos.pressure||0.5;
+  const size=state.brushSize*(0.7+pressure*0.6);
+  ctx.save(); ctx.globalAlpha=state.opacity;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  let drawColor=state.tool==='eraser'?'#ffffff':state.color;
+  if(pen.effect==='rainbow'){ state.rainbowHue=(state.rainbowHue+3)%360; drawColor=`hsl(${state.rainbowHue},100%,50%)`; }
+  else if(pen.effect==='fire'){ const r=[255,220,200][Math.floor(Math.random()*3)]; drawColor=`rgb(${r},${Math.floor(r*0.4)},0)`; }
+  if(state.tool==='eraser'){ ctx.globalCompositeOperation='destination-out'; ctx.lineWidth=size*2; }
+  else if(pen.effect==='soft'||state.tool==='brush'){ ctx.shadowBlur=size; ctx.shadowColor=drawColor; ctx.lineWidth=size*0.7; }
+  else{ ctx.globalCompositeOperation='source-over'; ctx.lineWidth=size; }
+  ctx.strokeStyle=drawColor;
+  ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(pos.x,pos.y); ctx.stroke();
+  if(pen.effect==='sparkle'||pen.effect==='glitter'){
+    for(let i=0;i<3;i++){
+      ctx.globalAlpha=Math.random()*0.6;
+      ctx.fillStyle=`hsl(${Math.random()*360},100%,80%)`;
+      ctx.beginPath();
+      ctx.arc(pos.x+(Math.random()-0.5)*20,pos.y+(Math.random()-0.5)*20,Math.random()*3+1,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  lastX=pos.x; lastY=pos.y;
+  state.strokeCount++;
+  handleBuddy();
+}
+function endDraw(e){ if(!state.isDrawing)return; state.isDrawing=false; stopMusic(); }
+canvas.addEventListener('mousedown',startDraw);
+canvas.addEventListener('mousemove',draw);
+canvas.addEventListener('mouseup',endDraw);
+canvas.addEventListener('mouseleave',endDraw);
+canvas.addEventListener('touchstart',startDraw,{passive:false});
+canvas.addEventListener('touchmove',draw,{passive:false});
+canvas.addEventListener('touchend',endDraw,{passive:false});
+
+// ============================================================
+// BUDDY
+// ============================================================
+let bubbleTimeout=null, checkinTimeout=null;
+const BUDDY_POSITIONS=[
+  {right:'16px',left:'auto',bottom:'100px'},
+  {right:'auto',left:'16px',bottom:'100px'},
+  {right:'16px',left:'auto',bottom:'160px'},
+  {right:'auto',left:'16px',bottom:'160px'},
+];
+let buddyPosIdx=0;
+
+function showBuddySpeech(msg,dur=3500){
+  if(!state.settings.buddy) return;
+  const b=document.getElementById('buddy-bubble');
+  b.textContent=msg; b.classList.add('show');
+  if(bubbleTimeout) clearTimeout(bubbleTimeout);
+  bubbleTimeout=setTimeout(()=>b.classList.remove('show'),dur);
+}
+function bounceBuddy(){
+  const b=document.getElementById('buddy-body');
+  b.style.animation='none'; void b.offsetWidth;
+  b.style.animation='buddy-bounce 0.5s ease, buddy-float 2.5s ease-in-out 0.5s infinite';
+}
+function moveBuddy(){
+  buddyPosIdx=(buddyPosIdx+1)%BUDDY_POSITIONS.length;
+  const p=BUDDY_POSITIONS[buddyPosIdx];
+  const c=document.getElementById('buddy-container');
+  c.style.right=p.right; c.style.left=p.left; c.style.bottom=p.bottom;
+  bounceBuddy();
+}
+function handleBuddy(){
+  const sinceB=state.strokeCount-state.lastBuddyStroke;
+  const sinceC=state.strokeCount-state.lastCheckinStroke;
+  if(sinceB>=80&&sinceB%80===0){
+    state.lastBuddyStroke=state.strokeCount;
+    const elapsed=state.drawingStartTime?(Date.now()-state.drawingStartTime)/1000:0;
+    showBuddySpeech(getRand(elapsed>90?BUDDY_MSGS.longdraw:BUDDY_MSGS.drawing),3000);
+    bounceBuddy();
+    if(state.strokeCount>200&&Math.random()>0.6) moveBuddy();
+  }
+  if(state.tool==='eraser'&&sinceB>=30&&sinceB%30===0){
+    showBuddySpeech(getRand(BUDDY_MSGS.eraser),2500);
+    state.lastBuddyStroke=state.strokeCount;
+  }
+  if(state.settings.checkin&&sinceC>=200){
+    state.lastCheckinStroke=state.strokeCount;
+    triggerMiniCheckin();
+  }
+}
+function triggerMiniCheckin(){
+  const qs=['How are you feeling? 😊','Having fun? 🎈','How is your heart? 💖','Loving your art? 🎨'];
+  document.getElementById('mini-question').textContent=getRand(qs);
+  const el=document.getElementById('mini-checkin');
+  el.classList.add('show');
+  setTimeout(()=>showBuddySpeech(getRand(BUDDY_MSGS.checkin_prompt),3000),200);
+  if(checkinTimeout) clearTimeout(checkinTimeout);
+  checkinTimeout=setTimeout(()=>el.classList.remove('show'),8000);
+}
+function miniRespond(emoji){
+  document.getElementById('mini-checkin').classList.remove('show');
+  if(checkinTimeout) clearTimeout(checkinTimeout);
+  spawnReaction(emoji);
+  const positive=['😄','🤩','😊','😎'];
+  if(positive.includes(emoji)){ showBuddySpeech(getRand(BUDDY_MSGS.positive_response),3000); awardTokens(3); awardXP(5); }
+  else{ showBuddySpeech(getRand(BUDDY_MSGS.neutral_response),3500); awardTokens(1); }
+  bounceBuddy();
+}
+function spawnReaction(emoji){
+  const wrap=document.getElementById('canvas-wrap');
+  const el=document.createElement('div');
+  el.className='float-reaction'; el.textContent=emoji;
+  el.style.left=Math.random()*60+20+'%'; el.style.bottom='80px';
+  wrap.appendChild(el); setTimeout(()=>el.remove(),1500);
+}
+function setBuddy(char){
+  state.buddyChar=char;
+  document.getElementById('buddy-body').textContent=char;
+  document.getElementById('feeling-buddy').textContent=char;
+  showBuddySpeech('Hi! I\'m your new art buddy! 😊',2500);
+  saveState();
+}
+
+// ============================================================
+// FLOOD FILL
+// ============================================================
+function floodFill(e){
+  const pos=getPos(e);
+  const x=Math.floor(pos.x), y=Math.floor(pos.y);
+  const id=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const data=id.data;
+  const idx=(y*canvas.width+x)*4;
+  const target=[data[idx],data[idx+1],data[idx+2],data[idx+3]];
+  const fill=hexToRgb(state.color); if(!fill) return;
+  if(target[0]===fill.r&&target[1]===fill.g&&target[2]===fill.b) return;
+  const stack=[[x,y]], w=canvas.width, h=canvas.height;
+  const visited=new Uint8Array(w*h);
+  const tol=30;
+  function match(i){ return Math.abs(data[i]-target[0])<tol&&Math.abs(data[i+1]-target[1])<tol&&Math.abs(data[i+2]-target[2])<tol; }
+  let count=0;
+  while(stack.length&&count<200000){
+    const[cx,cy]=stack.pop();
+    if(cx<0||cx>=w||cy<0||cy>=h) continue;
+    const ci=cy*w+cx; if(visited[ci]) continue;
+    const pi=ci*4; if(!match(pi)) continue;
+    visited[ci]=1;
+    data[pi]=fill.r; data[pi+1]=fill.g; data[pi+2]=fill.b; data[pi+3]=255;
+    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]); count++;
+  }
+  ctx.putImageData(id,0,0); awardXP(5);
+  showBuddySpeech(getRand(BUDDY_MSGS.color),2000); bounceBuddy();
+}
+function hexToRgb(hex){
+  const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null;
+}
+
+// ============================================================
+// TOOLS
+// ============================================================
+function setTool(t){
+  state.tool=t;
+  ['pen','brush','eraser','fill'].forEach(id=>{
+    const b=document.getElementById('btn-'+id); if(b) b.classList.toggle('active',id===t);
+  });
+  canvas.style.cursor=t==='eraser'?'cell':'crosshair';
+  if(t==='fill'){ state.mode='color'; updateModeIndicator(); }
+  else if(state.mode==='color'&&t!=='fill'){ state.mode='draw'; updateModeIndicator(); }
+}
+function setColor(c){
+  state.color=c;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('selected',s.dataset.color===c));
+}
+function updateBrushSize(v){
+  state.brushSize=parseInt(v);
+  const p=document.getElementById('brush-preview');
+  const sz=Math.max(4,Math.min(28,parseInt(v)));
+  p.style.width=sz+'px'; p.style.height=sz+'px';
+}
+function updateOpacity(v){ state.opacity=v/100; }
+function toggleMode(){
+  state.mode=state.mode==='draw'?'color':'draw';
+  state.tool=state.mode==='color'?'fill':'pen';
+  updateModeIndicator();
+}
+function updateModeIndicator(){
+  const mi=document.getElementById('mode-indicator');
+  mi.textContent=state.mode==='draw'?'✏️ DRAW':'🪣 COLOR';
+  mi.style.color=state.mode==='draw'?'var(--accent3)':'var(--accent2)';
+  mi.style.borderColor=state.mode==='draw'?'var(--accent3)':'var(--accent2)';
+  mi.style.background=state.mode==='draw'?'rgba(78,205,196,0.15)':'rgba(245,166,35,0.15)';
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function saveHistory(){
+  state.history=state.history.slice(0,state.historyIndex+1);
+  state.history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+  if(state.history.length>20) state.history.shift();
+  state.historyIndex=state.history.length-1;
+}
+function undo(){ if(state.historyIndex>0){ state.historyIndex--; ctx.putImageData(state.history[state.historyIndex],0,0); } }
+function clearCanvas(){ saveHistory(); ctx.clearRect(0,0,canvas.width,canvas.height); fillBg(); templateCtx.clearRect(0,0,templateCanvas.width,templateCanvas.height); }
+
+// ============================================================
+// SAVE DRAWING
+// ============================================================
+function saveDrawing(){
+  try{
+    const link=document.createElement('a');
+    link.download='artkids-drawing-'+Date.now()+'.png';
+    // Composite template + drawing
+    const offscreen=document.createElement('canvas');
+    offscreen.width=canvas.width; offscreen.height=canvas.height;
+    const octx=offscreen.getContext('2d');
+    octx.fillStyle='#ffffff'; octx.fillRect(0,0,offscreen.width,offscreen.height);
+    octx.drawImage(canvas,0,0);
+    octx.drawImage(templateCanvas,0,0);
+    link.href=offscreen.toDataURL('image/png');
+    link.click();
+    showSaveFlash();
+    awardXP(5);
+  }catch(e){ showSaveFlash('⚠️ Save failed - try again'); }
+}
+function showSaveFlash(msg){
+  const el=document.getElementById('save-flash');
+  el.textContent=msg||'💾 Drawing Saved!';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ============================================================
+// TOKENS / XP / LEVELS
+// ============================================================
+function awardTokens(n){ state.tokens+=n; document.getElementById('token-num').textContent=state.tokens; document.getElementById('stat-tokens').textContent=state.tokens; saveState(); }
+function awardXP(n){
+  state.xp+=n;
+  const needed=state.level*100;
+  if(state.xp>=needed&&state.level<20){ state.level++; state.xp-=needed; updateLevelUI(); showLevelUp(); }
+  updateXPBar(); saveState();
+}
+function updateXPBar(){
+  const needed=state.level*100;
+  document.getElementById('xp-fill').style.width=Math.min(100,state.xp/needed*100)+'%';
+  document.getElementById('xp-cur').textContent=state.xp;
+  document.getElementById('xp-max').textContent=needed;
+}
+function updateLevelUI(){
+  document.getElementById('level-num').textContent=state.level;
+  document.getElementById('lvl-badge-num').textContent=state.level;
+  document.getElementById('stat-level').textContent=state.level;
+  buildPenSelector();
+}
+function showLevelUp(){
+  const pen=PENS[state.level-1];
+  document.getElementById('unlocked-pen-icon').textContent=pen.icon;
+  document.getElementById('unlocked-pen-name').textContent=pen.name+' Unlocked!';
+  document.getElementById('unlocked-pen-desc').textContent=pen.desc;
+  document.getElementById('new-level-num').textContent=state.level;
+  document.getElementById('levelup-progress').style.width=((state.level-1)/20*100)+'%';
+  document.getElementById('levelup-modal').style.display='flex';
+  awardTokens(25);
+}
+
+// ============================================================
+// FINISH
+// ============================================================
+function finishDrawing(){
+  stopMusic();
+  state.drawingsCompleted++;
+  state.drawingStartTime=null;
+  document.getElementById('stat-drawings').textContent=state.drawingsCompleted;
+  awardXP(20); awardTokens(20);
+  document.getElementById('feel-grid').querySelectorAll('.emoji-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('star-row').querySelectorAll('.fstar').forEach(s=>s.classList.remove('lit'));
+  state.currentStar=0;
+  document.getElementById('feeling-buddy').textContent=state.buddyChar;
+  document.getElementById('feeling-buddy-msg').textContent=getRand(BUDDY_MSGS.finish);
+  document.getElementById('feeling-modal').style.display='flex';
+  document.getElementById('mini-checkin').classList.remove('show');
+  saveState();
+}
+function selectFeeling(card,emoji){
+  document.getElementById('feel-grid').querySelectorAll('.emoji-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected'); spawnReaction(emoji);
+  const positive=['🤩','😄','😊','😎'];
+  showBuddySpeech(positive.includes(emoji)?getRand(BUDDY_MSGS.positive_response):getRand(BUDDY_MSGS.neutral_response),3000);
+}
+function rateStar(n){
+  state.currentStar=n;
+  document.getElementById('star-row').querySelectorAll('.fstar').forEach((s,i)=>s.classList.toggle('lit',i<n));
+  if(n>=4){ showBuddySpeech(`${n} stars! You're amazing! 🌟`,2500); bounceBuddy(); }
+  awardXP(n*2);
+}
+function respondChallenge(ans){
+  document.getElementById('feeling-modal').style.display='none';
+  if(ans==='yes'){ awardTokens(15); awardXP(10); showBuddySpeech('I KNEW you could do better! Let\'s go! 🚀',3000); }
+  else if(ans==='maybe'){ awardTokens(5); showBuddySpeech('I believe in you! You\'ve got this! 💪',3000); }
+  else{ showBuddySpeech('You always try your best and that\'s everything! 💖',3500); awardTokens(5); }
+  bounceBuddy();
+  ['🎉','🌟','✨','🎨','💫'].forEach((e,i)=>setTimeout(()=>spawnReaction(e),i*200));
+}
+
+// ============================================================
+// MUSIC
+// ============================================================
+let audioCtx=null, musicInterval=null;
+const NOTES=[261.63,293.66,329.63,349.23,392.00,440.00,493.88,523.25];
+function startMusic(){
+  if(!state.settings.music||state.musicPlaying) return;
+  state.musicPlaying=true;
+  document.getElementById('music-indicator').style.display='block';
+  try{
+    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    playNote(); musicInterval=setInterval(()=>{ if(state.isDrawing) playNote(); },350);
+  }catch(e){}
+}
+function playNote(){
+  if(!audioCtx) return;
+  try{
+    const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type='sine'; osc.frequency.value=NOTES[Math.floor(Math.random()*NOTES.length)];
+    gain.gain.setValueAtTime(0.07,audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.3);
+    osc.start(); osc.stop(audioCtx.currentTime+0.3);
+  }catch(e){}
+}
+function stopMusic(){
+  state.musicPlaying=false;
+  document.getElementById('music-indicator').style.display='none';
+  if(musicInterval){ clearInterval(musicInterval); musicInterval=null; }
+}
+
+// ============================================================
+// IMPORT
+// ============================================================
+function importImage(){ document.getElementById('file-input').click(); }
+function handleFileImport(event){
+  const file=event.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      saveHistory();
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      templateCtx.clearRect(0,0,templateCanvas.width,templateCanvas.height);
+      const scale=Math.min(canvas.width/img.width,canvas.height/img.height);
+      const dw=img.width*scale, dh=img.height*scale;
+      const dx=(canvas.width-dw)/2, dy=(canvas.height-dh)/2;
+      templateCtx.filter='grayscale(100%)'; templateCtx.globalAlpha=0.4;
+      templateCtx.drawImage(img,dx,dy,dw,dh); templateCtx.filter='none'; templateCtx.globalAlpha=1;
+      ctx.globalAlpha=0.12; ctx.drawImage(img,dx,dy,dw,dh); ctx.globalAlpha=1; fillBg();
+      showBuddySpeech('Awesome photo! Now let\'s color it! 🎨',3000); bounceBuddy();
+    }; img.src=e.target.result;
+  }; reader.readAsDataURL(file); event.target.value='';
+}
+
+// ============================================================
+// LIBRARY
+// ============================================================
+const LIBRARY_ITEMS=[
+  {name:'Sun',draw:'sun'},{name:'House',draw:'house'},{name:'Tree',draw:'tree'},
+  {name:'Car',draw:'car'},{name:'Star',draw:'star'},{name:'Heart',draw:'heart'},
+  {name:'Cat',draw:'cat'},{name:'Flower',draw:'flower'},{name:'Boat',draw:'boat'},
+  {name:'Robot',draw:'robot'},{name:'Fish',draw:'fish'},{name:'Butterfly',draw:'butterfly'},
+];
+function openLibrary(){ buildLibraryGrid(); document.getElementById('library-modal').style.display='flex'; }
+function buildLibraryGrid(){
+  const grid=document.getElementById('library-grid'); grid.innerHTML='';
+  LIBRARY_ITEMS.forEach(item=>{
+    const div=document.createElement('div'); div.className='lib-item';
+    const c=document.createElement('canvas'); c.width=70; c.height=60;
+    drawTemplate(c.getContext('2d'),item.draw,70,60);
+    div.appendChild(c); div.innerHTML+=`<span>${item.name}</span>`;
+    div.onclick=()=>loadTemplate(item); grid.appendChild(div);
+  });
+}
+function drawTemplate(lctx,type,w,h){
+  lctx.clearRect(0,0,w,h); lctx.strokeStyle='#333'; lctx.lineWidth=2;
+  const cx=w/2, cy=h/2; lctx.beginPath();
+  switch(type){
+    case 'sun': lctx.arc(cx,cy,h*0.3,0,Math.PI*2); lctx.stroke(); for(let i=0;i<8;i++){const a=i*Math.PI/4;lctx.beginPath();lctx.moveTo(cx+h*0.35*Math.cos(a),cy+h*0.35*Math.sin(a));lctx.lineTo(cx+h*0.48*Math.cos(a),cy+h*0.48*Math.sin(a));lctx.stroke();} break;
+    case 'house': lctx.moveTo(cx,h*0.1);lctx.lineTo(w*0.85,h*0.5);lctx.lineTo(w*0.15,h*0.5);lctx.closePath();lctx.stroke();lctx.strokeRect(w*0.25,h*0.5,w*0.5,h*0.45); break;
+    case 'tree': lctx.moveTo(cx,h*0.05);lctx.lineTo(w*0.8,h*0.65);lctx.lineTo(w*0.2,h*0.65);lctx.closePath();lctx.stroke();lctx.beginPath();lctx.strokeRect(cx-w*0.07,h*0.65,w*0.14,h*0.3); break;
+    case 'car': lctx.roundRect(w*0.1,h*0.45,w*0.8,h*0.35,5);lctx.stroke();lctx.beginPath();lctx.moveTo(w*0.25,h*0.45);lctx.lineTo(w*0.35,h*0.2);lctx.lineTo(w*0.65,h*0.2);lctx.lineTo(w*0.75,h*0.45);lctx.stroke();lctx.beginPath();lctx.arc(w*0.28,h*0.82,w*0.1,0,Math.PI*2);lctx.stroke();lctx.beginPath();lctx.arc(w*0.72,h*0.82,w*0.1,0,Math.PI*2);lctx.stroke(); break;
+    case 'star': for(let i=0;i<5;i++){const a=i*Math.PI*2/5-Math.PI/2,ia=a+Math.PI/5;lctx.lineTo(cx+h*0.45*Math.cos(a),cy+h*0.45*Math.sin(a));lctx.lineTo(cx+h*0.2*Math.cos(ia),cy+h*0.2*Math.sin(ia));}lctx.closePath();lctx.stroke(); break;
+    case 'heart': lctx.moveTo(cx,h*0.75);lctx.bezierCurveTo(w*0.1,h*0.55,w*0.1,h*0.25,cx,h*0.4);lctx.bezierCurveTo(w*0.9,h*0.25,w*0.9,h*0.55,cx,h*0.75);lctx.stroke(); break;
+    case 'cat': lctx.arc(cx,cy,h*0.35,0,Math.PI*2);lctx.stroke();lctx.beginPath();lctx.moveTo(w*0.3,cy-h*0.32);lctx.lineTo(w*0.2,cy-h*0.55);lctx.lineTo(w*0.4,cy-h*0.32);lctx.moveTo(w*0.7,cy-h*0.32);lctx.lineTo(w*0.8,cy-h*0.55);lctx.lineTo(w*0.6,cy-h*0.32);lctx.stroke(); break;
+    case 'flower': lctx.arc(cx,cy,h*0.15,0,Math.PI*2);lctx.stroke();for(let i=0;i<6;i++){lctx.beginPath();const a=i*Math.PI/3;lctx.arc(cx+h*0.27*Math.cos(a),cy+h*0.27*Math.sin(a),h*0.14,0,Math.PI*2);lctx.stroke();} break;
+    case 'boat': lctx.moveTo(w*0.1,h*0.7);lctx.lineTo(w*0.9,h*0.7);lctx.lineTo(w*0.75,h*0.9);lctx.lineTo(w*0.25,h*0.9);lctx.closePath();lctx.stroke();lctx.beginPath();lctx.moveTo(cx,h*0.7);lctx.lineTo(cx,h*0.15);lctx.lineTo(w*0.75,h*0.7);lctx.stroke(); break;
+    case 'robot': lctx.strokeRect(w*0.25,h*0.3,w*0.5,h*0.45);lctx.strokeRect(w*0.35,h*0.1,w*0.3,h*0.2);lctx.beginPath();lctx.arc(w*0.37,h*0.44,h*0.07,0,Math.PI*2);lctx.arc(w*0.63,h*0.44,h*0.07,0,Math.PI*2);lctx.stroke();lctx.strokeRect(w*0.35,h*0.58,w*0.3,h*0.1);lctx.beginPath();lctx.moveTo(w*0.25,h*0.4);lctx.lineTo(w*0.1,h*0.55);lctx.moveTo(w*0.75,h*0.4);lctx.lineTo(w*0.9,h*0.55);lctx.stroke(); break;
+    case 'fish': lctx.ellipse(cx,cy,w*0.35,h*0.22,0,0,Math.PI*2);lctx.stroke();lctx.beginPath();lctx.moveTo(w*0.72,h*0.28);lctx.lineTo(w*0.9,cy-h*0.15);lctx.lineTo(w*0.9,cy+h*0.15);lctx.closePath();lctx.stroke(); break;
+    case 'butterfly': lctx.beginPath();lctx.bezierCurveTo(w*0.1,h*0.1,w*0.45,h*0.1,cx,cy);lctx.bezierCurveTo(w*0.55,h*0.1,w*0.9,h*0.1,w*0.9,h*0.4);lctx.bezierCurveTo(w*0.9,h*0.7,cx,h*0.6,cx,cy);lctx.bezierCurveTo(cx,h*0.6,w*0.1,h*0.7,w*0.1,h*0.4);lctx.closePath();lctx.stroke(); break;
+  }
+}
+function loadTemplate(item){
+  document.getElementById('library-modal').style.display='none';
+  saveHistory(); ctx.clearRect(0,0,canvas.width,canvas.height); fillBg();
+  templateCtx.clearRect(0,0,templateCanvas.width,templateCanvas.height);
+  templateCtx.save(); templateCtx.strokeStyle='#222'; templateCtx.lineWidth=3;
+  drawTemplate(templateCtx,item.draw,canvas.width,canvas.height);
+  templateCtx.restore();
+  showBuddySpeech('Cool choice! Now color it in! 🎨',2500); bounceBuddy();
+}
+
+// ============================================================
+// PEN SELECTOR
+// ============================================================
+function buildPenSelector(){
+  const sel=document.getElementById('pen-selector'); sel.innerHTML='';
+  PENS.forEach((pen,i)=>{
+    const btn=document.createElement('button');
+    btn.className='pen-btn'+(i===state.penType?' active':'')+(pen.level>state.level?' locked':'');
+    btn.title=pen.name+(pen.level>state.level?` (Level ${pen.level})`:'');
+    btn.textContent=pen.level>state.level?'🔒':pen.icon;
+    btn.onclick=()=>{
+      if(pen.level>state.level){ showBuddySpeech(`Reach Level ${pen.level} to unlock ${pen.name}! 💪`,2500); return; }
+      state.penType=i; buildPenSelector();
+      showBuddySpeech(`${pen.icon} ${pen.name} ready!`,2000);
+    };
+    sel.appendChild(btn);
+  });
+}
+
+// ============================================================
+// COLORS
+// ============================================================
+function buildColorSwatches(){
+  const c=document.getElementById('color-swatches');
+  c.innerHTML=''; c.style.cssText='display:flex;flex-direction:column;gap:5px;align-items:center';
+  COLORS.forEach(col=>{
+    const sw=document.createElement('div');
+    sw.className='color-swatch'+(col===state.color?' selected':'');
+    sw.dataset.color=col; sw.style.background=col;
+    if(col==='#ffffff') sw.style.border='3px solid var(--muted)';
+    sw.onclick=()=>setColor(col);
+    c.appendChild(sw);
+  });
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function openSettings(){ document.getElementById('settings-modal').style.display='flex'; }
+function toggleSetting(key,btn){
+  state.settings[key]=!state.settings[key];
+  btn.classList.toggle('on',state.settings[key]);
+  if(key==='music'&&!state.settings.music) stopMusic();
+  if(key==='buddy') document.getElementById('buddy-container').style.opacity=state.settings.buddy?'1':'0';
+  saveState();
+}
+
+// ============================================================
+// PWA INSTALL
+// ============================================================
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('install-banner').style.display='flex';
+});
+function installPWA(){
+  if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ document.getElementById('install-banner').style.display='none'; deferredPrompt=null; }); }
+  else{ document.getElementById('install-banner').style.display='none'; }
+}
+window.addEventListener('appinstalled',()=>{ document.getElementById('install-banner').style.display='none'; });
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  buildColorSwatches(); buildPenSelector();
+  setColor('#222222'); updateBrushSize(6);
+  updateModeIndicator(); updateXPBar(); updateLevelUI();
+  document.getElementById('buddy-body').textContent=state.buddyChar;
+  document.getElementById('feeling-buddy').textContent=state.buddyChar;
+  document.getElementById('token-num').textContent=state.tokens;
+  document.getElementById('stat-tokens').textContent=state.tokens;
+  document.getElementById('stat-drawings').textContent=state.drawingsCompleted;
+  saveHistory();
+  setTimeout(()=>{ showBuddySpeech(getRand(BUDDY_MSGS.start),4000); bounceBuddy(); },900);
+  setInterval(()=>{ if(!state.isDrawing&&state.strokeCount>0&&state.settings.buddy&&Math.random()>0.6) showBuddySpeech(getRand(BUDDY_MSGS.drawing),3000); },30000);
+}
+init();
+</script>
+</body>
+</html>
